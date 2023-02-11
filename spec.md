@@ -8,13 +8,13 @@ An Explicit expression can be operated on in further transformations. It can be 
 integer, a string or a boolean.
 
 Legal expressions:
-  * Variable names are of the form _[a-z A-Z]* (referred to as <varident>).
-  * Function names are of the form [a-z A-Z]* (referred to as <funident>).
+  * Variable names are of the form _[a-z A-Z]* (referred to as `<varident>`).
+  * Function names are of the form [a-z A-Z]* (referred to as `<funident>`).
   * A variable is introduced as `let <varident> <expr>`.
   * A function is introduced as `fun <funident> <params> <expr>`
-    where <params> means a whitespace separated <varident> list.
+    where `<params>` means a whitespace separated `<varident>` list.
   * A function is applied to arguments as `<funident> <arguments>`
-    where <arguments> means a whitespace separated <expr> list to be substitued.
+    where `<arguments>` means a whitespace separated `<expr>` list to be substitued.
     Evaluation is strict.
 
 # Builtins
