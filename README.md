@@ -3,7 +3,7 @@ A Shitty Language I Made
 
 This is a simple programming language I made to learn about parsing, interpretation, and (eventually, I haven't got into that yet) compilation.
 
-It currently has a simple REPL, I will add a standard file interpreter.
+It currently has a simple REPL and is able to interpret files (usually with the .sl extension)
 
 Example session:
 ```
