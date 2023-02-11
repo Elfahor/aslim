@@ -21,6 +21,9 @@ let assignment_error (x : identifier) =
   |> String.concat " " 
   |> fun s -> raise (Unit_assignment s)
 
+exception Invalid_sequence
+exception Undeclared_identifier of string
+
 (* builtin functions *)
 let (builtins : builtin IdentMap.t) =
   [ 
@@ -53,7 +56,11 @@ and applyFun (name : identifier) (paramExprs : Ast.t list) (context : context) :
   match IdentMap.find_opt name builtins with
   (* if it isn't a builtin *)
   | None -> begin
-    let f, parNames = IdentMap.find name context.funs in
+    let f, parNames = begin 
+      match IdentMap.find_opt name context.funs with
+      | None -> raise (Undeclared_identifier name)
+      | Some x -> x
+    end in
     let parNames = List.to_seq parNames in
     (* evaluate each param (strict)*)
     let paramVals = List.map (fun e ->
@@ -74,9 +81,17 @@ and applyFun (name : identifier) (paramExprs : Ast.t list) (context : context) :
 
 and interpret_expr_ctx (ast: Ast.t) (context : context) : exprRet =
   match ast with
+  | Ast.Seq (e1, e2) -> begin
+    match interpret_expr_ctx e1 context with
+    | Unit -> interpret_expr_ctx e2 context
+    | Explicit _ -> raise Invalid_sequence
+    end
   | Ast.Int x -> Explicit (Int x)
   | Ast.String s -> Explicit (String s)
-  | Ast.Ident v -> Explicit (IdentMap.find v context.vars)
+  | Ast.Ident v -> Explicit ( 
+    match IdentMap.find_opt v context.vars with
+    | None -> raise (Undeclared_identifier v)
+    | Some x -> x)
   | Ast.VarDecl (x, e) ->
       declareVar x e context
   | Ast.FunDecl (name, params, ret) -> 

@@ -2,9 +2,8 @@
   open Parser
 }
 rule epl_token = parse
-  | [' ' '\t'] { epl_token lexbuf }
+  | [' ' '\t' '\n'] { epl_token lexbuf }
   | eof { EOL }
-  | ['\n'] { EOL }
   | "let" { KwLet }
   | "fun" { KwFun }
   | ['0'-'9']* as word { Int(int_of_string word) }

@@ -1,4 +1,5 @@
 type t =
+  | Seq of t * t
   | Int of int
   | String of string
   | Ident of string
