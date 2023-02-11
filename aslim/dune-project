@@ -17,7 +17,7 @@
 
 (package
  (name aslim)
- (synopsis "A shitty language I made")
+ (synopsis "A Shitty Language I Made")
  (description "A longer description")
  (depends ocaml dune)
  (tags

@@ -20,5 +20,5 @@ Legal expressions:
 # Builtins
 
 A few builtin functions are provided:
-`add <int> <int>` returns $1 + $2.
-`add <str> <str>` returns the concatenation of $1 and $2
+  * `add <int> <int>` returns $1 + $2.
+    `add <str> <str>` returns the concatenation of $1 and $2.

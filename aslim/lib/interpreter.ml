@@ -14,26 +14,29 @@ type varTable = value IdentMap.t
 type funTable = funDecl IdentMap.t
 type context = { mutable vars: varTable; mutable funs: funTable }
 
+(* most basic error kind *)
+exception Unit_assignment of string
+let assignment_error (x : identifier) =
+  ["error:"; x; "assignment returned unit"] 
+  |> String.concat " " 
+  |> fun s -> raise (Unit_assignment s)
+
 (* builtin functions *)
 let (builtins : builtin IdentMap.t) =
   [ 
     ("add", function
       | [Int x; Int y] -> Explicit (Int (x + y))
-      | _ -> failwith "error: bad arg"
+      | [String s1; String s2] -> Explicit (String (s1 ^ s2))
+      | _ -> assignment_error "add"
     );
   ] 
   |> List.to_seq
   |> IdentMap.of_seq
 
-let emptyContext = {vars = IdentMap.empty; funs = IdentMap.empty}
-
-let assignment_error x =
-  ["error:"; x; "assignment returned unit"] 
-  |> String.concat " " 
-  |> failwith
+let (emptyContext : context) = {vars = IdentMap.empty; funs = IdentMap.empty}
 
 (* declare a variable *)
-let rec declareVar name value context =
+let rec declareVar (name : identifier) (value : Ast.t) (context : context) : exprRet =
   let v = interpret_expr_ctx value context in
   (match v with 
   | Explicit v -> context.vars <- IdentMap.add name v context.vars
@@ -41,12 +44,12 @@ let rec declareVar name value context =
   Unit
 
 (* declare a function *)
-and declareFun name params ret context =
-  context.funs <- IdentMap.add name (ret, params) context.funs;
+and declareFun (name : identifier) (params : funParams) (body : Ast.t) (context : context) : exprRet =
+  context.funs <- IdentMap.add name (body, params) context.funs;
   Unit
 
 (* apply a function *)
-and applyFun name paramExprs context =
+and applyFun (name : identifier) (paramExprs : Ast.t list) (context : context) : exprRet =
   match IdentMap.find_opt name builtins with
   (* if it isn't a builtin *)
   | None -> begin
@@ -56,7 +59,7 @@ and applyFun name paramExprs context =
     let paramVals = List.map (fun e ->
       match interpret_expr_ctx e context with
       | Explicit v -> v
-      | Unit -> assignment_error "duh")
+      | Unit -> assignment_error name)
     paramExprs |> List.to_seq in
     let ctxVars = IdentMap.add_seq (Seq.zip parNames paramVals) context.vars in
     interpret_expr_ctx f {vars = ctxVars; funs = context.funs}
@@ -65,11 +68,11 @@ and applyFun name paramExprs context =
   | Some f -> f (
     List.map (fun e ->
       match interpret_expr_ctx e context with
-      | Unit -> assignment_error "arg"
+      | Unit -> assignment_error name
       | Explicit v -> v)
     paramExprs)
 
-and interpret_expr_ctx (ast: Ast.t) (context : context) =
+and interpret_expr_ctx (ast: Ast.t) (context : context) : exprRet =
   match ast with
   | Ast.Int x -> Explicit (Int x)
   | Ast.String s -> Explicit (String s)
@@ -81,6 +84,7 @@ and interpret_expr_ctx (ast: Ast.t) (context : context) =
   | Ast.Application (name, paramExprs) ->
       applyFun name paramExprs context
 
-let interpret_expr ast = 
+(* top level interpretation starting from an emptyContext *)
+let interpret_expr (ast : Ast.t) : exprRet = 
   interpret_expr_ctx ast emptyContext
 
