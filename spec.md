@@ -43,6 +43,7 @@ An `if` expression is provided:
 ```
 if (<expr>) (<expr>) (<expr>)
 ```
-It returns $2 if $1 evaluates to true, $3 otherwise.
+It returns $2 if $1 evaluates to true, $3 otherwise. Again,
+parentheses are mandatory.
 Evaluation is lazy, which is why this is provided as a
 keyword and not as a language builtin.
