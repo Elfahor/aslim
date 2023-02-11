@@ -13,6 +13,8 @@ Example session:
 int: 6
 > 
 ```
+You might also want to check out the [example](example.sl)
+
 The language [specification](spec.md) is available.
 
 # Usage
