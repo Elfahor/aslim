@@ -14,3 +14,12 @@ int: 6
 > 
 ```
 The language [specification](spec.md) is available.
+
+# Usage
+Build:
+
+```
+git clone https://github.com/Elfahor/aslim.git
+cd aslim
+make
+```
