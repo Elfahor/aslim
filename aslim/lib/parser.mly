@@ -2,7 +2,7 @@
 %token <string> String
 %token <string> FIdent
 %token <string> VIdent
-%token KwLet KwFun
+%token KwLet KwFun KwIf
 %token EOL
 %token LParen RParen
 %left FIdent
@@ -17,6 +17,7 @@ expr:
   | LParen expr RParen  { $2 }
   | Int { Int $1 }
   | String { String $1 }
+  | KwIf LParen expr RParen LParen expr RParen LParen expr RParen { If($3, $6, $9) }
   | KwLet VIdent expr { VarDecl($2, $3) }
   | KwFun FIdent params expr { FunDecl($2, $3, $4) }
   | VIdent { Ident $1 }

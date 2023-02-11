@@ -22,3 +22,27 @@ Legal expressions:
 A few builtin functions are provided:
   * `add <int> <int>` returns $1 + $2.
     `add <str> <str>` returns the concatenation of $1 and $2.
+  * `cmp <expr> <expr>` compares $1 and $2, which can be of any type,
+    except Unit. It returns:
+      * -1 if $1 < $2
+      * 0 if $1 = $2
+      * 1 if $1 > $2
+  * `print <expr>` prints its argument.
+  * `eq <expr> <expr>` returns true if $1 = $2
+  * `ignore <expr>` does nothing and returns Unit.
+
+# Control flow
+
+Expressions can be written sequentially like so:
+```
+(<expr>) <expr>
+```
+The parentheses are MANDATORY.
+
+An `if` expression is provided:
+```
+if (<expr>) (<expr>) (<expr>)
+```
+It returns $2 if $1 evaluates to true, $3 otherwise.
+Evaluation is lazy, which is why this is provided as a
+keyword and not as a language builtin.

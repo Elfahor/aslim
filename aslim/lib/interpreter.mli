@@ -8,5 +8,5 @@ type exprRet =
 val interpret_expr : Ast.t -> exprRet
 
 exception Invalid_sequence
-exception Unit_assignment of string
+exception Type_error of string
 exception Undeclared_identifier of string

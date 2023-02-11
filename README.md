@@ -17,7 +17,7 @@ The language [specification](spec.md) is available.
 
 # Usage
 Build dependencies:
-  * A reasonably up to date OCaml toolchain
+  * A reasonably up-to-date OCaml tool chain
   * The [dune](https://dune.build/) build system
   * GNU Make
 

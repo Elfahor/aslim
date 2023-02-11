@@ -6,4 +6,5 @@ type t =
   | VarDecl of string * t
   | FunDecl of string * string list * t
   | Application of string * t list
+  | If of t * t * t
   

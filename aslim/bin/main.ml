@@ -13,8 +13,8 @@ let replMode () =
       | Interpreter.Invalid_sequence ->
           print_endline "Invalid sequence"; 
           Interpreter.Unit
-      | Interpreter.Unit_assignment s ->
-          print_endline ("Unit assignment" ^ s); 
+      | Interpreter.Type_error s ->
+          print_endline ("Type error" ^ s); 
           Interpreter.Unit
     in match res with
     | Aslim.Interpreter.Unit ->

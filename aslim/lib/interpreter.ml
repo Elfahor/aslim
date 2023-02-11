@@ -14,15 +14,15 @@ type varTable = value IdentMap.t
 type funTable = funDecl IdentMap.t
 type context = { mutable vars: varTable; mutable funs: funTable }
 
-(* most basic error kind *)
-exception Unit_assignment of string
-let assignment_error (x : identifier) =
-  ["error:"; x; "assignment returned unit"] 
-  |> String.concat " " 
-  |> fun s -> raise (Unit_assignment s)
+exception Type_error of string
+(* let assignment_error (x : identifier) = *)
+(*   ["error:"; x; "assignment returned unit"]  *)
+(*   |> String.concat " "  *)
+(*   |> fun s -> raise (Type_error s) *)
 
 exception Invalid_sequence
-exception Undeclared_identifier of string
+exception Undeclared_identifier of identifier
+exception Arity_error of identifier
 
 (* builtin functions *)
 let (builtins : builtin IdentMap.t) =
@@ -30,7 +30,8 @@ let (builtins : builtin IdentMap.t) =
     ("add", function
       | [Int x; Int y] -> Explicit (Int (x + y))
       | [String s1; String s2] -> Explicit (String (s1 ^ s2))
-      | _ -> assignment_error "add"
+      | [_; _] -> raise (Type_error "add")
+      | _ -> raise (Arity_error "add")
     );
     ("print", fun p -> 
       let print_bool b =
@@ -48,6 +49,23 @@ let (builtins : builtin IdentMap.t) =
             print_poly h;
             print_sl t;
       in print_sl p; Unit
+    );
+    ("cmp", function
+      | [Int x; Int y] -> Explicit (Int (compare x y))
+      | [String s1; String s2] -> Explicit(Int (compare s1 s2))
+      | [Bool b1; Bool b2] -> Explicit (Int (compare b1 b2))
+      | [_; _] -> raise (Type_error "cmp")
+      | _ -> raise (Arity_error "cmp")
+    );
+    ("ignore", fun x -> ignore x; Unit);
+    ("eq", fun p ->
+      let rec all_eq x = function
+      | [] -> true
+      | h::t -> h = x && all_eq x t in
+      let rec eq_all = function
+      | [] -> false
+      | h::t -> all_eq h t
+      in Explicit (Bool (eq_all p))
     )
   ] 
   |> List.to_seq
@@ -60,7 +78,7 @@ let rec declareVar (name : identifier) (value : Ast.t) (context : context) : exp
   let v = interpret_expr_ctx value context in
   (match v with 
   | Explicit v -> context.vars <- IdentMap.add name v context.vars
-  | Unit -> assignment_error name);
+  | Unit -> raise (Type_error ("Unit assignment of " ^ name)));
   Unit
 
 (* declare a function *)
@@ -83,7 +101,8 @@ and applyFun (name : identifier) (paramExprs : Ast.t list) (context : context) :
     let paramVals = List.map (fun e ->
       match interpret_expr_ctx e context with
       | Explicit v -> v
-      | Unit -> assignment_error name)
+    (*TODO Better error msg *)
+      | Unit -> raise (Type_error ("Unit assignment of <argname> in " ^ name ^ "call")))
     paramExprs |> List.to_seq in
     let ctxVars = IdentMap.add_seq (Seq.zip parNames paramVals) context.vars in
     interpret_expr_ctx f {vars = ctxVars; funs = context.funs}
@@ -92,9 +111,17 @@ and applyFun (name : identifier) (paramExprs : Ast.t list) (context : context) :
   | Some f -> f (
     List.map (fun e ->
       match interpret_expr_ctx e context with
-      | Unit -> assignment_error name
+      | Unit -> raise (Type_error ("Unit assignment of <arg in " ^ name ^ "call"))
       | Explicit v -> v)
     paramExprs)
+
+and conditionnal cond thenExpr elseExpr context =
+  match interpret_expr_ctx cond context with
+  | Explicit (Bool s) ->
+      if s
+      then interpret_expr_ctx thenExpr context
+      else interpret_expr_ctx elseExpr context
+  | _ -> raise (Type_error "Condition did not evaluate to true")
 
 and interpret_expr_ctx (ast: Ast.t) (context : context) : exprRet =
   match ast with
@@ -115,6 +142,8 @@ and interpret_expr_ctx (ast: Ast.t) (context : context) : exprRet =
       declareFun name params ret context
   | Ast.Application (name, paramExprs) ->
       applyFun name paramExprs context
+  | Ast.If (cond, thenExpr, elseExpr) ->
+    conditionnal cond thenExpr elseExpr context
 
 (* top level interpretation starting from an emptyContext *)
 let interpret_expr (ast : Ast.t) : exprRet = 
