@@ -16,18 +16,22 @@ int: 6
 The language [specification](spec.md) is available.
 
 # Usage
-Build:
+Build dependencies:
+  * A reasonably up to date OCaml toolchain
+  * The [dune](https://dune.build/) build system
+  * GNU Make
+Run
 
 ```
 git clone https://github.com/Elfahor/aslim.git
 cd aslim
 make
 ```
-Output will be placed in build.
+Output will be placed in `build`.
 
 Interpret a file:
 ```
-aslim file.sl
+aslim myfile.sl
 ```
 Start an interactive session:
 ```
