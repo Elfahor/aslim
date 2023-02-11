@@ -20,7 +20,6 @@ Build dependencies:
   * A reasonably up to date OCaml toolchain
   * The [dune](https://dune.build/) build system
   * GNU Make
-Run
 
 ```
 git clone https://github.com/Elfahor/aslim.git
