@@ -1,0 +1,6 @@
+(library
+ (name aslim))
+
+(ocamlyacc parser)
+
+(ocamllex epl_lexer)
