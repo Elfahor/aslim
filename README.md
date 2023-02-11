@@ -23,3 +23,13 @@ git clone https://github.com/Elfahor/aslim.git
 cd aslim
 make
 ```
+Output will be placed in build.
+
+Interpret a file:
+```
+aslim file.sl
+```
+Start an interactive session:
+```
+aslim -i
+```
