@@ -13,6 +13,7 @@ let replMode () =
       begin match v with
       | String s -> Printf.printf "str: %s\n" s
       | Int n -> Printf.printf "int: %d\n" n
+      | Bool b -> Printf.printf "bool: %b\n" b
       end
   done
 
