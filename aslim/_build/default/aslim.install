@@ -1,8 +1,0 @@
-lib: [
-  "_build/install/default/lib/aslim/META"
-  "_build/install/default/lib/aslim/dune-package"
-  "_build/install/default/lib/aslim/opam"
-]
-bin: [
-  "_build/install/default/bin/aslim"
-]
