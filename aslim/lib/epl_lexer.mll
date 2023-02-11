@@ -7,9 +7,10 @@ rule epl_token = parse
   | "let" { KwLet }
   | "fun" { KwFun }
   | ['0'-'9']* as word { Int(int_of_string word) }
-  | '"'(['a'-'z' 'A'-'Z']* as word)'"' { String(word) }
+  | '"' ([^ '\n' '"']* as word) '"' { String(word) }
   | '_'(['a'-'z' 'A'-'Z']* as word) { VIdent(word) }
   | ['a'-'z' 'A'-'Z']* as word { FIdent(word) }
   | '(' { LParen }
   | ')' { RParen }
+  | '#' [^ '\n']* {epl_token lexbuf}
 

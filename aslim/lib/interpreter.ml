@@ -32,6 +32,23 @@ let (builtins : builtin IdentMap.t) =
       | [String s1; String s2] -> Explicit (String (s1 ^ s2))
       | _ -> assignment_error "add"
     );
+    ("print", fun p -> 
+      let print_bool b =
+        if b then print_string "true"
+        else print_string "false"
+      in let print_poly x = 
+        match x with
+        | Int a -> print_int a
+        | String s -> print_string s
+        | Bool b -> print_bool b
+      in let rec print_sl params =
+        match params with
+        | [] -> print_endline ""
+        | h::t ->
+            print_poly h;
+            print_sl t;
+      in print_sl p; Unit
+    )
   ] 
   |> List.to_seq
   |> IdentMap.of_seq
