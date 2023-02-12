@@ -7,6 +7,9 @@ let replMode () =
     let res = try 
       Stages.interpret_single_expr input
       with 
+      | Epl_lexer.Invalid_token ->
+          print_endline "Invalid token"; 
+          Globals.Unit
       | Parsing.Parse_error -> 
           print_endline "Ill formed expression"; 
           Globals.Unit
@@ -19,6 +22,10 @@ let replMode () =
       | Interpreter.Recursion_error s ->
           print_endline ("Recursion error in " ^ s);
           Unit
+      | Interpreter.Undeclared_identifier s ->
+          print_endline ("Undeclared identifier: " ^ s);
+          Unit
+
     in match res with
     | Globals.Unit ->
         ()

@@ -22,7 +22,7 @@ expr:
   | KwFun FIdent params expr { FunDecl($2, $3, $4) }
   | VIdent { Ident $1 }
   | FIdent arguments { Application ($1, $2) }
-  | LParen expr RParen expr { Seq ($2, $4) }
+  | LParen expr RParen LParen expr RParen { Seq ($2, $5) }
 
 arguments:
   | argument { [$1] }

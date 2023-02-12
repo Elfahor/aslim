@@ -7,6 +7,8 @@ A Unit expression has side effects: for instance variable declaration.
 An Explicit expression can be operated on in further transformations. It can be an
 integer, a string or a boolean.
 
+It is also possible to handle linked lists.
+
 Legal expressions:
   * Variable names are of the form _[a-z A-Z]* (referred to as `<varident>`).
   * Function names are of the form [a-z A-Z]* (referred to as `<funident>`).
@@ -30,12 +32,14 @@ A few builtin functions are provided:
   * `print <expr>` prints its argument.
   * `eq <expr> <expr>` returns true if $1 = $2
   * `ignore <expr>` does nothing and returns Unit.
+  * `li <params>` returns a linked list composed of the whitespace sperated parameters.
+  * `cons <expr> <expr>` returns a new list consisting of $1 prepended to $2
 
 # Control flow
 
 Expressions can be written sequentially like so:
 ```
-(<expr>) <expr>
+(<expr>) (<expr>)
 ```
 The parentheses are MANDATORY.
 
