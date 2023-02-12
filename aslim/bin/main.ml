@@ -9,21 +9,25 @@ let replMode () =
       with 
       | Parsing.Parse_error -> 
           print_endline "Ill formed expression"; 
-          Interpreter.Unit
+          Globals.Unit
       | Interpreter.Invalid_sequence ->
           print_endline "Invalid sequence"; 
-          Interpreter.Unit
+          Globals.Unit
       | Interpreter.Type_error s ->
           print_endline ("Type error" ^ s); 
-          Interpreter.Unit
+          Globals.Unit
+      | Interpreter.Recursion_error s ->
+          print_endline ("Recursion error in " ^ s);
+          Unit
     in match res with
-    | Aslim.Interpreter.Unit ->
+    | Globals.Unit ->
         ()
-    | Aslim.Interpreter.Explicit v ->
+    | Globals.Explicit v ->
       begin match v with
-      | String s -> Printf.printf "str: %s\n" s
-      | Int n -> Printf.printf "int: %d\n" n
-      | Bool b -> Printf.printf "bool: %b\n" b
+      | String s -> Printf.printf "%s\n" s
+      | Int n -> Printf.printf "%d\n" n
+      | Bool b -> Printf.printf "%b\n" b
+      | List l -> Utils.print_list l; print_newline ()
       end
   done
 

@@ -1,10 +1,5 @@
-type value =
-  | Int of int
-  | Bool of bool
-  | String of string
-type exprRet =
-  | Explicit of value
-  | Unit
+open Globals
+
 type builtin = value list -> exprRet
 type identifier = string
 module IdentMap = Map.Make (String)
@@ -12,7 +7,7 @@ type funParams = identifier list
 type funDecl = Ast.t * funParams
 type varTable = value IdentMap.t
 type funTable = funDecl IdentMap.t
-type context = { mutable vars: varTable; mutable funs: funTable }
+type context = { mutable vars: varTable; mutable funs: funTable; mutable recDepth: int }
 
 exception Type_error of string
 (* let assignment_error (x : identifier) = *)
@@ -23,6 +18,7 @@ exception Type_error of string
 exception Invalid_sequence
 exception Undeclared_identifier of identifier
 exception Arity_error of identifier
+exception Recursion_error of identifier
 
 (* builtin functions *)
 let (builtins : builtin IdentMap.t) =
@@ -34,19 +30,11 @@ let (builtins : builtin IdentMap.t) =
       | _ -> raise (Arity_error "add")
     );
     ("print", fun p -> 
-      let print_bool b =
-        if b then print_string "true"
-        else print_string "false"
-      in let print_poly x = 
-        match x with
-        | Int a -> print_int a
-        | String s -> print_string s
-        | Bool b -> print_bool b
-      in let rec print_sl params =
+      let rec print_sl (params : value list) =
         match params with
         | [] -> print_endline ""
         | h::t ->
-            print_poly h;
+            Utils.print_poly h;
             print_sl t;
       in print_sl p; Unit
     );
@@ -66,12 +54,17 @@ let (builtins : builtin IdentMap.t) =
       | [] -> false
       | h::t -> all_eq h t
       in Explicit (Bool (eq_all p))
-    )
+    );
+    ("li", fun p -> Explicit (List p));
+    ("cons", function
+      | [x; List l] -> Explicit (List (x::l))
+      | [_; _] -> raise (Type_error "cons")
+      | _ -> raise (Arity_error "cons"))
   ] 
   |> List.to_seq
   |> IdentMap.of_seq
 
-let (emptyContext : context) = {vars = IdentMap.empty; funs = IdentMap.empty}
+let (emptyContext : context) = {vars = IdentMap.empty; funs = IdentMap.empty; recDepth = 0}
 
 (* declare a variable *)
 let rec declareVar (name : identifier) (value : Ast.t) (context : context) : exprRet =
@@ -88,6 +81,9 @@ and declareFun (name : identifier) (params : funParams) (body : Ast.t) (context 
 
 (* apply a function *)
 and applyFun (name : identifier) (paramExprs : Ast.t list) (context : context) : exprRet =
+  if context.recDepth >= 1000
+  then raise (Recursion_error name)
+  else
   match IdentMap.find_opt name builtins with
   (* if it isn't a builtin *)
   | None -> begin
@@ -105,7 +101,7 @@ and applyFun (name : identifier) (paramExprs : Ast.t list) (context : context) :
       | Unit -> raise (Type_error ("Unit assignment of <argname> in " ^ name ^ "call")))
     paramExprs |> List.to_seq in
     let ctxVars = IdentMap.add_seq (Seq.zip parNames paramVals) context.vars in
-    interpret_expr_ctx f {vars = ctxVars; funs = context.funs}
+    interpret_expr_ctx f {vars = ctxVars; funs = context.funs; recDepth = context.recDepth + 1}
     end
   (* if it is builtin *)
   | Some f -> f (
@@ -115,7 +111,7 @@ and applyFun (name : identifier) (paramExprs : Ast.t list) (context : context) :
       | Explicit v -> v)
     paramExprs)
 
-and conditionnal cond thenExpr elseExpr context =
+and conditionnal (cond : Ast.t) (thenExpr : Ast.t) (elseExpr : Ast.t) context =
   match interpret_expr_ctx cond context with
   | Explicit (Bool s) ->
       if s
