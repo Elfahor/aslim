@@ -26,6 +26,10 @@ let (builtins : builtin IdentMap.t) =
     ("add", function
       | [Int x; Int y] -> Explicit (Int (x + y))
       | [String s1; String s2] -> Explicit (String (s1 ^ s2))
+      | [Float x; Float y] -> Explicit (Float (x +. y))
+      | [List l1; List l2] -> Explicit (List (l1 @ l2))
+      | [Int x; Float y] -> Explicit (Float (float_of_int x +. y))
+      | [Float x; Int y] -> Explicit (Float (x +. float_of_int y))
       | [_; _] -> raise (Type_error "add")
       | _ -> raise (Arity_error "add")
     );
@@ -59,12 +63,32 @@ let (builtins : builtin IdentMap.t) =
     ("cons", function
       | [x; List l] -> Explicit (List (x::l))
       | [_; _] -> raise (Type_error "cons")
-      | _ -> raise (Arity_error "cons"))
+      | _ -> raise (Arity_error "cons")
+    );
+    ("hd", function
+      | [List []] -> raise (Invalid_argument "hd on empty list")
+      | [List (h::t)] -> Explicit h
+      | [_] -> raise (Type_error "hd")
+      | _ -> raise (Arity_error "hd")
+    );
+    ("tl", function
+      | [List []] -> raise (Invalid_argument "tl on empty list")
+      | [List (h::t)] -> Explicit (List t)
+      | [_] -> raise (Type_error "tl")
+      | _ -> raise (Arity_error "tl")
+    )
   ] 
   |> List.to_seq
   |> IdentMap.of_seq
 
-let (emptyContext : context) = {vars = IdentMap.empty; funs = IdentMap.empty; recDepth = 0}
+let (consts : value IdentMap.t) =
+  [ "nil",   List []
+  ; "true",  Bool true
+  ; "false", Bool false]
+  |> List.to_seq
+  |> IdentMap.of_seq
+
+let (emptyContext : context) = {vars = consts; funs = IdentMap.empty; recDepth = 0}
 
 (* declare a variable *)
 let rec declareVar (name : identifier) (value : Ast.t) (context : context) : exprRet =
@@ -121,13 +145,20 @@ and conditionnal (cond : Ast.t) (thenExpr : Ast.t) (elseExpr : Ast.t) context =
 
 and interpret_expr_ctx (ast: Ast.t) (context : context) : exprRet =
   match ast with
-  | Ast.Seq (e1, e2) -> begin
-    match interpret_expr_ctx e1 context with
-    | Unit -> interpret_expr_ctx e2 context
-    | Explicit _ -> raise Invalid_sequence
-    end
+  | Ast.Seq l -> let rec aux l =
+    begin match l with
+    | [] -> raise Invalid_sequence
+    | [e] -> interpret_expr_ctx e context
+    | e1::t -> begin
+      match interpret_expr_ctx e1 context with
+      | Unit -> aux t
+      | Explicit _ -> raise Invalid_sequence
+      end 
+    end 
+    in aux l
   | Ast.Int x -> Explicit (Int x)
   | Ast.String s -> Explicit (String s)
+  | Ast.Float f -> Explicit (Float f)
   | Ast.Ident v -> Explicit ( 
     match IdentMap.find_opt v context.vars with
     | None -> raise (Undeclared_identifier v)

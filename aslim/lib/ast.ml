@@ -1,7 +1,8 @@
 type t =
-  | Seq of t * t
+  | Seq of t list
   | Int of int
   | String of string
+  | Float of float
   | Ident of string
   | VarDecl of string * t
   | FunDecl of string * string list * t

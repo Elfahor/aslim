@@ -17,7 +17,7 @@ let replMode () =
           print_endline "Invalid sequence"; 
           Globals.Unit
       | Interpreter.Type_error s ->
-          print_endline ("Type error" ^ s); 
+          print_endline ("Type error " ^ s); 
           Globals.Unit
       | Interpreter.Recursion_error s ->
           print_endline ("Recursion error in " ^ s);
@@ -34,6 +34,7 @@ let replMode () =
       | String s -> Printf.printf "%s\n" s
       | Int n -> Printf.printf "%d\n" n
       | Bool b -> Printf.printf "%b\n" b
+      | Float f -> Printf.printf"%f\n" f
       | List l -> Utils.print_list l; print_newline ()
       end
   done
