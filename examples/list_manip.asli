@@ -1,0 +1,18 @@
+(
+  (fun next $l (
+    (if (eq $l $nil)
+      (li 0)
+      (cons (add (hd $l) 1) $l))
+  ));
+  (fun until $n (
+    (if (eq $n 0)
+      ($nil)
+      ((
+        (let $rest (until (add $n (-1))));
+        (cons $n $rest)
+      ))
+    )
+  ));
+  (let $n (stoi (input 0)));
+  (print (until $n))
+)
