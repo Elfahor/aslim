@@ -1,15 +1,15 @@
 # ASLIM
 A Shitty Language I Made
 
-This is a simple programming language I made to learn about parsing, interpretation, and (eventually, I haven't got into that yet) compilation.
+This is a toy programming language I made to learn about parsing, interpretation, and (eventually, I haven't got into that yet) compilation.
 
 It currently has a simple REPL and is able to interpret files (usually with the .asli extension)
 
 Example session:
 ```
-> let _x 5
-> fun incr _a (add _a 1)
-> incr _x
+> let $x 5
+> fun incr $a (add _a 1)
+> incr $x
 int: 6
 > 
 ```

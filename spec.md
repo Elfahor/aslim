@@ -10,7 +10,7 @@ integer, a string or a boolean.
 It is also possible to handle linked lists.
 
 Legal expressions:
-  * Variable names are of the form _[a-z A-Z]* (referred to as `<varident>`).
+  * Variable names are of the form $[a-z A-Z]* (referred to as `<varident>`).
   * Function names are of the form [a-z A-Z]* (referred to as `<funident>`).
   * A variable is introduced as `let <varident> <expr>`.
   * A function is introduced as `fun <funident> <params> <expr>`
@@ -39,7 +39,7 @@ A few builtin functions are provided:
 
 Expressions can be written sequentially like so:
 ```
-(<expr>) (<expr>)
+(<expr>;<expr>;...)
 ```
 The parentheses are MANDATORY.
 

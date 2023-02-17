@@ -5,7 +5,7 @@
 %token <string> VIdent
 %token KwLet KwFun KwIf
 %token EOL
-%token LParen RParen
+%token LParen RParen Sep
 %left FIdent
 %start main
 %type <Ast.t> main
@@ -24,11 +24,12 @@ expr:
   | KwFun FIdent params expr { FunDecl($2, $3, $4) }
   | VIdent { Ident $1 }
   | FIdent arguments { Application ($1, $2) }
-  | seq { Seq ($1) }
+  | LParen seq RParen { Seq ($2) }
 
 arguments:
   | argument { [$1] }
   | argument arguments { $1 :: $2 }
+
 argument:
   | expr { $1 }
 
@@ -39,5 +40,5 @@ param:
   | VIdent { $1 }
 
 seq:
-  | LParen expr RParen { [$2] }
-  | LParen expr RParen seq { $2 :: $4 }
+  | expr { [$1] }
+  | expr Sep seq { $1 :: $3 }
