@@ -34,6 +34,8 @@ A few builtin functions are provided:
   * `ignore <expr>` does nothing and returns Unit.
   * `li <params>` returns a linked list composed of the whitespace sperated parameters.
   * `cons <expr> <expr>` returns a new list consisting of $1 prepended to $2
+  * And others. This is not kept in sync with the actual code.
+    Best is to check [the interpreter's code](/aslim/lib/interpreter.ml:26)
 
 # Control flow
 
