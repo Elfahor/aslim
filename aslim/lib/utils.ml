@@ -13,6 +13,17 @@ and print_list l =
 and print_poly (x : Globals.value) = 
   match x with
   | Int a -> print_int a
+  | Float f -> print_float f
   | String s -> print_string s
   | Bool b -> print_bool b
   | List l -> print_list l
+
+let print_stack_trace st =
+  print_string "Stack trace (most recent call first):\n";
+  let rec aux = function
+    | [] -> ()
+    | h::t ->
+        Printf.printf "  at %s\n" h;
+        aux t
+  in aux st
+

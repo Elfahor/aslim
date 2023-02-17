@@ -1,10 +1,11 @@
 (
   (let $x 5);
+  # demonstrate exceptions
   (fun incr $x (
     (
       (if (eq $x 5)
-        (print "yay")
-        (print "oh")
+        (exn "I HATE 5!!")
+        (print "okay")
       );
       (add $x 1)
     )
