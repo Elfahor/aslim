@@ -1,0 +1,9 @@
+(
+  (fun truth $x (
+    (if (eq $x $false)
+      ($x)
+      (truth $x)
+    )
+  ));
+  (truth (stob (input 0)))
+)

@@ -22,8 +22,8 @@ let print_stack_trace st =
   print_string "Stack trace (most recent call first):\n";
   let rec aux = function
     | [] -> ()
-    | h::t ->
-        Printf.printf "  at %s\n" h;
+    | (count, name)::t ->
+        Printf.printf "  at %s (%d times)\n" name count;
         aux t
   in aux st
 

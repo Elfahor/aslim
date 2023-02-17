@@ -6,7 +6,7 @@ type funParams = identifier list
 type funDecl = Ast.t * funParams
 type varTable = value IdentMap.t
 type funTable = funDecl IdentMap.t
-type stack_trace = identifier list
+type stack_trace = (int * identifier) list
 type builtin = (stack_trace * value list) -> exprRet
 type context = { 
   mutable vars: varTable;
@@ -17,7 +17,7 @@ type context = {
 
 exception Type_error of stack_trace
 exception Invalid_sequence of stack_trace
-exception Undeclared_identifier of stack_trace
+exception Undeclared_identifier of identifier * stack_trace
 exception Arity_error of stack_trace
 exception Recursion_error of stack_trace
 exception User_exn of string * stack_trace
@@ -44,6 +44,7 @@ let (builtins : builtin IdentMap.t) =
             print_sl t;
       in print_sl p; Unit
     );
+    ("input", fun _ -> Explicit (String (read_line ())));
     ("cmp", fun (s, p) -> match p with
       | [Int x; Int y] -> Explicit (Int (compare x y))
       | [String s1; String s2] -> Explicit(Int (compare s1 s2))
@@ -83,6 +84,21 @@ let (builtins : builtin IdentMap.t) =
       | [String s2] -> raise (User_exn (s2, s))
       | [_] -> raise (Type_error s)
       | _ -> raise (Arity_error s)
+    );
+    ("stoi", fun (s, p) -> match p with
+      | [String s] -> Explicit (Int (int_of_string s))
+      | [_] -> raise (Type_error s)
+      | _ -> raise (Arity_error s)
+    );
+    ("stob", fun (s, p) -> match p with
+      | [String s] -> Explicit (Bool (bool_of_string s))
+      | [_] -> raise (Type_error s)
+      | _ -> raise (Arity_error s)
+    );
+    ("stof", fun (s, p) -> match p with
+      | [String s] -> Explicit (Float (float_of_string s))
+      | [_] -> raise (Type_error s)
+      | _ -> raise (Arity_error s)
     )
   ] 
   |> List.to_seq
@@ -91,7 +107,8 @@ let (builtins : builtin IdentMap.t) =
 let (consts : value IdentMap.t) =
   [ "nil",   List []
   ; "true",  Bool true
-  ; "false", Bool false]
+  ; "false", Bool false
+  ]
   |> List.to_seq
   |> IdentMap.of_seq
 
@@ -112,15 +129,12 @@ and declareFun (name : identifier) (params : funParams) (body : Ast.t) (context 
 
 (* apply a function *)
 and applyFun (name : identifier) (paramExprs : Ast.t list) (context : context) : exprRet =
-  if context.rec_depth >= 1000
-  then raise (Recursion_error context.stack_trace)
-  else
   match IdentMap.find_opt name builtins with
   (* if it isn't a builtin *)
   | None -> begin
     let f, parNames = begin 
       match IdentMap.find_opt name context.funs with
-      | None -> raise (Undeclared_identifier context.stack_trace)
+      | None -> raise (Undeclared_identifier (name, context.stack_trace))
       | Some x -> x
     end in
     let parNames = List.to_seq parNames in
@@ -132,12 +146,18 @@ and applyFun (name : identifier) (paramExprs : Ast.t list) (context : context) :
       | Unit -> raise (Type_error (context.stack_trace)))
     paramExprs |> List.to_seq in
     let ctxVars = IdentMap.add_seq (Seq.zip parNames paramVals) context.vars in
-    interpret_expr_ctx f {
+    try interpret_expr_ctx f {
       vars = ctxVars;
       funs = context.funs;
       rec_depth = context.rec_depth + 1;
-      stack_trace = name::context.stack_trace
-    }
+      stack_trace = match context.stack_trace with
+        | [] -> [(1, name)]
+        | (count, last)::t -> if last = name
+          then (count + 1, last)::t
+          else (1, name)::context.stack_trace
+    } 
+    with Stack_overflow -> 
+      raise (Recursion_error context.stack_trace)
     end
   (* if it is builtin *)
   | Some f -> f (context.stack_trace, (
@@ -173,7 +193,7 @@ and interpret_expr_ctx (ast: Ast.t) (context : context) : exprRet =
   | Ast.Float f -> Explicit (Float f)
   | Ast.Ident v -> Explicit ( 
     match IdentMap.find_opt v context.vars with
-    | None -> raise (Undeclared_identifier context.stack_trace)
+    | None -> raise (Undeclared_identifier (v, context.stack_trace))
     | Some x -> x)
   | Ast.VarDecl (x, e) ->
       declareVar x e context
@@ -201,8 +221,8 @@ let interpret_expr (ast : Ast.t) : exprRet =
       print_endline ("Recursion error:");
       Utils.print_stack_trace s;
       Unit
-  | Undeclared_identifier s ->
-      print_endline ("Undeclared identifier:");
+  | Undeclared_identifier (id, s) ->
+      Printf.printf "Undeclared identifier: %s\n" id; 
       Utils.print_stack_trace s;
       Unit
   | User_exn (message, s) ->

@@ -8,12 +8,12 @@ It currently has a simple REPL and is able to interpret files (usually with the 
 Example session:
 ```
 > let $x 5
-> fun incr $a (add _a 1)
+> fun incr $a (add $a 1)
 > incr $x
 int: 6
 > 
 ```
-You might also want to check out the [example](example.asli)
+You might also want to check out the [examples](examples/)
 
 The language [specification](spec.md) is available.
 
