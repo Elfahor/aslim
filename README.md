@@ -21,8 +21,14 @@ The language [specification](spec.md) is available.
 Build dependencies:
   * A reasonably up-to-date OCaml tool chain
   * The [dune](https://dune.build/) build system
-  * GNU Make
+  * GNU Make (If you are on Windows, you must build manually).
 
+These can be installed with:
+```
+opam init #if this hasn't been done before
+opam install dune menhir
+```
+Then build with:
 ```
 git clone https://github.com/Elfahor/aslim.git
 cd aslim
