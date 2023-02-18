@@ -6,7 +6,6 @@
 %token KwLet KwFun KwIf
 %token EOL
 %token LParen RParen Sep
-%left FIdent
 %start main
 %type <Ast.t> main
 
@@ -16,15 +15,15 @@ main: expr EOL { $1 }
 
 expr:
   | LParen expr RParen  { $2 }
-  | Int { Int $1 }
-  | String { String $1 }
-  | Float { Float $1 }
-  | KwIf LParen expr RParen LParen expr RParen LParen expr RParen { If($3, $6, $9) }
-  | KwLet VIdent expr { VarDecl($2, $3) }
-  | KwFun FIdent params expr { FunDecl($2, $3, $4) }
-  | VIdent { Ident $1 }
-  | FIdent arguments { Application ($1, $2) }
-  | LParen seq RParen { Seq ($2) }
+  | Int { Int ($startpos, $1) }
+  | String { String ($startpos, $1) }
+  | Float { Float ($startpos, $1) }
+  | KwIf LParen expr RParen LParen expr RParen LParen expr RParen { If ($startpos, $3, $6, $9) }
+  | KwLet VIdent expr { VarDecl ($startpos, $2, $3) }
+  | KwFun FIdent params expr { FunDecl ($startpos, $2, $3, $4) }
+  | VIdent { Ident ($startpos, $1) }
+  | FIdent arguments { Application ($startpos, $1, $2) }
+  | LParen seq RParen { Seq ($startpos, $2) }
 
 arguments:
   | argument { [$1] }

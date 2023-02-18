@@ -6,7 +6,8 @@ type funParams = identifier list
 type funDecl = Ast.t * funParams
 type varTable = value IdentMap.t
 type funTable = funDecl IdentMap.t
-type stack_trace = (int * identifier) list
+type loc = Ast.loc
+type stack_trace = (int * identifier * loc) list
 type builtin = (stack_trace * value list) -> exprRet
 type context = { 
   mutable vars: varTable;
@@ -112,7 +113,7 @@ let (consts : value IdentMap.t) =
   |> List.to_seq
   |> IdentMap.of_seq
 
-let (emptyContext : context) = {vars = consts; funs = IdentMap.empty; rec_depth = 0; stack_trace = []}
+let (emptyContext : context) = {vars = consts; funs = IdentMap.empty; rec_depth = 0; stack_trace = [1, "<root>", Lexing.dummy_pos]}
 
 (* declare a variable *)
 let rec declareVar (name : identifier) (value : Ast.t) (context : context) : exprRet =
@@ -128,7 +129,7 @@ and declareFun (name : identifier) (params : funParams) (body : Ast.t) (context 
   Unit
 
 (* apply a function *)
-and applyFun (name : identifier) (paramExprs : Ast.t list) (context : context) : exprRet =
+and applyFun (name : identifier) (paramExprs : Ast.t list) (context : context) (pos: loc) : exprRet =
   match IdentMap.find_opt name builtins with
   (* if it isn't a builtin *)
   | None -> begin
@@ -151,10 +152,10 @@ and applyFun (name : identifier) (paramExprs : Ast.t list) (context : context) :
       funs = context.funs;
       rec_depth = context.rec_depth + 1;
       stack_trace = match context.stack_trace with
-        | [] -> [(1, name)]
-        | (count, last)::t -> if last = name
-          then (count + 1, last)::t
-          else (1, name)::context.stack_trace
+        | [] -> [(1, name, pos)]
+        | (count, last, p)::t -> if last = name
+          then (count + 1, last, p)::t
+          else (1, name, pos)::context.stack_trace
     } 
     with Stack_overflow -> 
       raise (Recursion_error context.stack_trace)
@@ -177,7 +178,7 @@ and conditionnal (cond : Ast.t) (thenExpr : Ast.t) (elseExpr : Ast.t) context =
 
 and interpret_expr_ctx (ast: Ast.t) (context : context) : exprRet =
    match ast with
-  | Ast.Seq l -> let rec aux l =
+  | Ast.Seq (pos, l) -> let rec aux l =
     begin match l with
     | [] -> raise (Invalid_sequence context.stack_trace)
     | [e] -> interpret_expr_ctx e context
@@ -188,20 +189,20 @@ and interpret_expr_ctx (ast: Ast.t) (context : context) : exprRet =
       end 
     end 
     in aux l
-  | Ast.Int x -> Explicit (Int x)
-  | Ast.String s -> Explicit (String s)
-  | Ast.Float f -> Explicit (Float f)
-  | Ast.Ident v -> Explicit ( 
+  | Ast.Int (_, x) -> Explicit (Int x)
+  | Ast.String (_, s) -> Explicit (String s)
+  | Ast.Float (_, f) -> Explicit (Float f)
+  | Ast.Ident (_, v) -> Explicit ( 
     match IdentMap.find_opt v context.vars with
     | None -> raise (Undeclared_identifier (v, context.stack_trace))
     | Some x -> x)
-  | Ast.VarDecl (x, e) ->
+  | Ast.VarDecl (_, x, e) ->
       declareVar x e context
-  | Ast.FunDecl (name, params, ret) -> 
+  | Ast.FunDecl (_, name, params, ret) -> 
       declareFun name params ret context
-  | Ast.Application (name, paramExprs) ->
-      applyFun name paramExprs context
-  | Ast.If (cond, thenExpr, elseExpr) ->
+  | Ast.Application (pos, name, paramExprs) ->
+      applyFun name paramExprs context pos
+  | Ast.If (_, cond, thenExpr, elseExpr) ->
     conditionnal cond thenExpr elseExpr context
   
 

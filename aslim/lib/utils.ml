@@ -19,11 +19,13 @@ and print_poly (x : Globals.value) =
   | List l -> print_list l
 
 let print_stack_trace st =
+  Lexing.(
   print_string "Stack trace (most recent call first):\n";
   let rec aux = function
     | [] -> ()
-    | (count, name)::t ->
-        Printf.printf "  at %s (%d times)\n" name count;
+    | (count, name, pos)::t ->
+        Printf.printf "  at %s:%d:%d (%d times)\n" 
+          name pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1) count;
         aux t
-  in aux st
+  in aux st)
 

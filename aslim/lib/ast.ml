@@ -1,11 +1,11 @@
+type loc = Lexing.position
 type t =
-  | Seq of t list
-  | Int of int
-  | String of string
-  | Float of float
-  | Ident of string
-  | VarDecl of string * t
-  | FunDecl of string * string list * t
-  | Application of string * t list
-  | If of t * t * t
-  
+  | Seq of loc * t list
+  | Int of loc * int
+  | String of loc * string
+  | Float of loc * float
+  | Ident of loc * string
+  | VarDecl of loc * string * t
+  | FunDecl of loc * string * string list * t
+  | Application of loc * string * t list
+  | If of loc * t * t * t

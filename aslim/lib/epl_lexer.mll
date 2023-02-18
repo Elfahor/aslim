@@ -3,7 +3,8 @@
   exception Invalid_token
 }
 rule epl_token = parse
-  | [' ' '\t' '\n'] { epl_token lexbuf }
+  | [' ' '\t'] { epl_token lexbuf }
+  | ['\n'] { epl_token lexbuf }
   | eof { EOL }
   | "let" { KwLet }
   | "fun" { KwFun }

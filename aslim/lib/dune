@@ -1,6 +1,6 @@
 (library
  (name aslim))
 
-(ocamlyacc parser)
+(menhir (modules parser))
 
 (ocamllex epl_lexer)
