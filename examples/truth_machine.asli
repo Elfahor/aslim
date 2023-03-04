@@ -2,7 +2,7 @@
   (fun truth $x (
     (if (eq $x $false)
       ($x)
-      (truth $x)
+      ((print $x; truth $x))
     )
   ));
   (truth (stob (input 0)))
